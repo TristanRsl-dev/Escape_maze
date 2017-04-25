@@ -1,10 +1,11 @@
 #!/bin/bash
 
 #draw a map from a .txt file (specs to create your own map are in the README.md)
-#'x' represent a wall
+#'-' represent a wall
 #' ' represent a case with no danger
-#'m' represent a case with a monster
+#'M' represent a case with a monster
 #'A' represent our friend, Aston
+#'O' represent the exit
 draw_map() {
     #FUNC ARGS
     local file_map="$1"
@@ -18,6 +19,9 @@ draw_map() {
     #read the second line that contains the initial position of the player
     read player_position <&6
 
+    #read the third line that contains the exit
+    read out_position <&6
+
     #read the following lines that contains positions of monsters
     local monsters_positions="()"
     while read monster_position; do
@@ -27,14 +31,16 @@ draw_map() {
     #draw the map following parameters
     map_size_x="$(getInfo "${map_size}" x)"
     map_size_y="$(getInfo "${map_size}" y)"
-    for column in $(seq 0 ${map_size_x}); do
-        for row in $(seq 0 ${map_size_y}); do
-            if [[ 0 == ${column} || 0 == ${row} \
-            || ${map_size_x} == ${column} || ${map_size_y} == ${row} ]]; then
-                echo -n 'x'
-            elif [[ "$(getInfo "${player_position}" x)" == ${column} \
-            && "$(getInfo "${player_position}" y)" == ${row} ]]; then
+    for row in $(seq 0 ${map_size_y}); do
+        for column in $(seq 0 ${map_size_x}); do
+            if [[ "${out_position}" != "${column} ${row}" \
+            && (0 == ${column} || 0 == ${row} \
+            || ${map_size_x} == ${column} || ${map_size_y} == ${row}) ]]; then
+                echo -n '-'
+            elif [[ "${player_position}" == "${column} ${row}" ]]; then
                 echo -n "A"
+            elif [[ "${out_position}" == "${column} ${row}" ]]; then
+                echo -n "O"
             else
                 echo -n " "
             fi
