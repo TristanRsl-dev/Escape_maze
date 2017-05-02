@@ -114,18 +114,33 @@ move_player() {
     local direction="$1"
     #END  ARGS
 
+    local y_position="$(get_info "${PLAYER_POSITION}" "y")"
+    local x_position="$(get_info "${PLAYER_POSITION}" "x")"
+
     case "${direction}" in
         "N")
-            local y_position="$(get_info "${PLAYER_POSITION}" "y")"
             if [[ ${y_position} != "1" ]]; then
-                PLAYER_POSITION=$((${y_position} - 1))
+                PLAYER_POSITION="${x_position} $((${y_position} - 1))"
+                echo "$(draw_map)"
             fi
             ;;
         "E")
+            if [[ ${x_position} != "${MAP_SIZE_X}" ]]; then
+                PLAYER_POSITION="$((${x_position} + 1)) ${y_position}"
+                echo "$(draw_map)"
+            fi
             ;;
         "S")
+            if [[ ${y_position} != "${MAP_SIZE_Y}" ]]; then
+                PLAYER_POSITION="${x_position} $((${y_position} + 1))"
+                echo "$(draw_map)"
+            fi
             ;;
         "W")
+            if [[ ${x_position} != "2" ]]; then
+                PLAYER_POSITION="$((${x_position} - 1)) ${y_position}"
+                echo "$(draw_map)"
+            fi
             ;;
     esac
 }
@@ -136,3 +151,6 @@ main() {
 }
 
 main $@
+#for index in $(seq 1 15); do
+#    move_player "N"
+#done
