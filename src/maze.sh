@@ -23,9 +23,10 @@ draw_map() {
     read out_position <&6
 
     #read the following lines that contains positions of monsters
-    local monsters_positions="()"
+    local monsters_positions=()
     while read monster_position; do
-        monsters_positions+=("${monster_position}")
+        monster_position=$(echo ${monster_position} | tr ' ' '-')
+        monsters_positions+=("(${monster_position})")
     done <&6
 
     #draw the map following parameters
@@ -41,6 +42,8 @@ draw_map() {
                 echo -n "A"
             elif [[ "${out_position}" == "${column} ${row}" ]]; then
                 echo -n "O"
+            elif [[ $(echo $(contains "(${column}-${row})" "${monsters_positions[@]}")) != "1" ]]; then
+                echo -n "M"
             else
                 echo -n " "
             fi
@@ -65,6 +68,22 @@ getInfo() {
     elif [[ "y" == "${element_number}" ]]; then
         echo "${y}"
     fi
+}
+
+#return '0' or '1' if the element is in the list or not
+contains() {
+    #FUNC ARGS
+    local coordonate="$1"
+    shift
+    local coordonates="$@"
+    #END  ARGS
+
+    for index in ${coordonates[@]}; do
+        if [[ "${coordonate}" == "${index}" ]]; then
+            echo 0
+        fi
+    done
+    echo 1
 }
 
 draw_map $@
