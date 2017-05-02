@@ -6,6 +6,10 @@ EXIT_POSITION=""
 MAP_SIZE_X=""
 MAP_SIZE_Y=""
 MONSTERS_POSITIONS=""
+
+PLAYER_LIFE=""
+PLAYER_ATK=""
+PLAYER_ARMOR=""
 #END
 
 init_map() {
@@ -145,9 +149,42 @@ move_player() {
     esac
 }
 
+#read from a file the informations of the player (life, attack, armor)
+init_hud() {
+    #FUNC ARGS
+    local file_hud="$1"
+    #END  ARGS
+
+    exec 6< ${file_hud}
+
+    #read the first line that contains the life of the player
+    read player_life <&6
+    PLAYER_LIFE="${player_life}"
+
+    #read the second line that contains the attack of the player
+    read player_atk <&6
+    PLAYER_ATK="${player_atk}"
+
+    #read the third line that contains the armor of the player
+    read player_armor <&6
+    PLAYER_ARMOR="${player_armor}"
+}
+
+#display the informations of the player
+display_hud() {
+    #FUNC ARGS
+    #END  ARGS
+
+    echo -e "\n   Life: "${PLAYER_LIFE}"\n" \
+    "  Attack: "${PLAYER_ATK}"\n" \
+    "  Armor: "${PLAYER_ARMOR}""
+}
+
 main() {
-    init_map $@
+    init_map $1
+    init_hud $2
     draw_map
+    display_hud
 }
 
 main $@
