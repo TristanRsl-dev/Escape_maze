@@ -6,6 +6,14 @@ EXIT_POSITION=""
 MAP_SIZE_X=""
 MAP_SIZE_Y=""
 MONSTERS_POSITIONS=""
+
+PLAYER_LIFE=""
+PLAYER_ATK=""
+PLAYER_ARMOR=""
+
+MONSTERS_LIFE=""
+MONSTERS_ATK=""
+MONSTERS_ARMOR=""
 #END
 
 init_map() {
@@ -17,6 +25,8 @@ init_map() {
 
     #read the first line that contains the size of the map
     read map_size <&6
+    MAP_SIZE_X="$(get_info "${map_size}" x)"
+    MAP_SIZE_Y="$(get_info "${map_size}" y)"
 
     #read the second line that contains the initial position of the player
     read player_position <&6
@@ -29,17 +39,16 @@ init_map() {
     #read the following lines that contains positions of monsters
     local monsters_positions=()
     while read monster_position; do
+        #init monsters informations
+        local index_monster=$(transform_coordonate_into_index "${monster_position}")
+        MONSTERS_LIFE[${index_monster}]=50
+        MONSTERS_ATK[${index_monster}]=7
+        MONSTERS_ARMOR[${index_monster}]=1
+
         monster_position=$(echo ${monster_position} | tr ' ' '-')
         monsters_positions+=("(${monster_position})")
     done <&6
     MONSTERS_POSITIONS="${monsters_positions[@]}"
-
-    #draw the map following parameters
-    map_size_x="$(get_info "${map_size}" x)"
-    map_size_y="$(get_info "${map_size}" y)"
-    MAP_SIZE_X="${map_size_x}"
-    MAP_SIZE_Y="${map_size_y}"
-
 }
 
 #draw a map from a .txt file (specs to create your own map are in the README.md)
@@ -145,9 +154,69 @@ move_player() {
     esac
 }
 
+#read from a file the informations of the player (life, attack, armor)
+init_hud() {
+    #FUNC ARGS
+    local file_hud="$1"
+    #END  ARGS
+
+    exec 6< ${file_hud}
+
+    #read the first line that contains the life of the player
+    read player_life <&6
+    PLAYER_LIFE="${player_life}"
+
+    #read the second line that contains the attack of the player
+    read player_atk <&6
+    PLAYER_ATK="${player_atk}"
+
+    #read the third line that contains the armor of the player
+    read player_armor <&6
+    PLAYER_ARMOR="${player_armor}"
+}
+
+#display the informations of the player
+display_hud() {
+    #FUNC ARGS
+    #END  ARGS
+
+    echo -e "\n   Life: "${PLAYER_LIFE}"\n" \
+    "  Attack: "${PLAYER_ATK}"\n" \
+    "  Armor: "${PLAYER_ARMOR}""
+}
+
+#retrieve information from the specified monster coordonate
+get_information_monster() {
+    #FUNC ARGS
+    local coordonate="$1"
+    #END  ARGS
+
+    local index_monster=$(transform_coordonate_into_index "${coordonate}")
+
+    #retrieve the value into monsters lists
+    echo ${MONSTERS_LIFE}
+    echo -e "\n   Life: "${MONSTERS_LIFE[${index_monster}]}"\n" \
+    "  Attack: "${MONSTERS_ATK[${index_monster}]}"\n" \
+    "  Armor: "${MONSTERS_ARMOR[${index_monster}]}""
+}
+
+#mathematic formula to create a unique identifier for each monster
+transform_coordonate_into_index() {
+    #FUNC ARGS
+    local coordonate="$1"
+    #END  ARGS
+
+    local monster_position_x="$(get_info "${coordonate}" "x")"
+    local monster_position_y="$(get_info "${coordonate}" "y")"
+
+    echo "$((${monster_position_x} + (${MAP_SIZE_X} * $((${monster_position_y} - 1)))))"
+}
+
 main() {
-    init_map $@
+    init_map $1
+    init_hud $2
     draw_map
+    display_hud
 }
 
 main $@
