@@ -16,9 +16,80 @@ MONSTERS_ATK=""
 MONSTERS_ARMOR=""
 #END
 
+#display the menu to choose what to do
+display_menu() {
+    echo -e "\n\tWelcome into the magic world of Aston the warrior. As brave as you are, you'll have difficulty to get out.\n"
+    sleep 2
+    echo -e "\tFirst, choose the difficulty:\n" \
+    "\t\t1 (Beginner)\n" \
+    "\t\t2 (Explorer)\n" \
+    "\t\t3 (Warrior)\n" \
+    "\n"
+
+    read difficulty_choosen
+
+    case "${difficulty_choosen}" in
+        1)
+            message_of_encouragement="Oh... You choose the easiest one. It's ok buddy, we still appreciate you."
+            stats_player="test/hud/beginner.hud"
+            monsters_life=50
+            monsters_atk=7
+            monsters_armor=1
+            ;;
+        2)
+            message_of_encouragement="Neither the easiest, nor the hardest. Fair enough, have fun."
+            stats_player="test/hud/explorer.hud"
+            monsters_life=100
+            monsters_atk=10
+            monsters_armor=2
+            ;;
+        3)
+            message_of_encouragement="Well, the hardest one... Good luck bro."
+            stats_player="test/hud/warrior.hud"
+            monsters_life=150
+            monsters_atk=12
+            monsters_armor=4
+            ;;
+    esac
+
+    echo -e "\t${message_of_encouragement}\n" \
+    "\n"
+    sleep 2
+    echo -e "\tBut before starting your adventure, please choose a map:\n" \
+    "\t\t1 (Little map - 10*10)" \
+    "\t\t2 (Middle size map - 15*15)" \
+    "\t\t3 (Large map - 20*20)" \
+    "\n"
+
+    read map_size_choosen
+
+    case "${map_size_choosen}" in
+        1)
+            map_file="test/map/little.map"
+            ;;
+        2)
+            map_file="test/map/middle.map"
+            ;;
+        3)
+            map_file="test/map/large.map"
+            ;;
+    esac
+
+    echo -e "\tLet's get started in 5 seconds !"
+    sleep 5
+
+    init_map "${map_file}" "${monsters_life}" "${monsters_atk}" "${monsters_armor}"
+    init_hud "${stats_player}"
+    draw_map
+    display_hud
+}
+
 init_map() {
     #FUNC ARGS
     local file_map="$1"
+    local monsters_life="$2"
+    local monsters_atk="$3"
+    local monsters_armor="$4"
     #END  ARGS
 
     exec 6< ${file_map}
@@ -41,9 +112,9 @@ init_map() {
     while read monster_position; do
         #init monsters informations
         local index_monster=$(transform_coordonate_into_index "${monster_position}")
-        MONSTERS_LIFE[${index_monster}]=50
-        MONSTERS_ATK[${index_monster}]=7
-        MONSTERS_ARMOR[${index_monster}]=1
+        MONSTERS_LIFE[${index_monster}]=${monsters_life}
+        MONSTERS_ATK[${index_monster}]=${monsters_atk}
+        MONSTERS_ARMOR[${index_monster}]=${monsters_armor}
 
         monster_position=$(echo ${monster_position} | tr ' ' '-')
         monsters_positions+=("(${monster_position})")
@@ -212,14 +283,4 @@ transform_coordonate_into_index() {
     echo "$((${monster_position_x} + (${MAP_SIZE_X} * $((${monster_position_y} - 1)))))"
 }
 
-main() {
-    init_map $1
-    init_hud $2
-    draw_map
-    display_hud
-}
-
-main $@
-#for index in $(seq 1 15); do
-#    move_player "N"
-#done
+display_menu
