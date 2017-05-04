@@ -26,29 +26,41 @@ display_menu() {
     "\t\t3 (Warrior)\n" \
     "\n"
 
+    #wait for the user to choose his difficulty
     read difficulty_choosen
 
     case "${difficulty_choosen}" in
         1)
+            #custom message for each difficulty
             message_of_encouragement="Oh... You choose the easiest one. It's ok buddy, we still appreciate you."
-            stats_player="test/hud/beginner.hud"
+            #set the hud file
+            stats_player="lib/hud/beginner.hud"
+            #set the monster informations
             monsters_life=50
             monsters_atk=7
             monsters_armor=1
             ;;
         2)
             message_of_encouragement="Neither the easiest, nor the hardest. Fair enough, have fun."
-            stats_player="test/hud/explorer.hud"
+            stats_player="lib/hud/explorer.hud"
             monsters_life=100
             monsters_atk=10
             monsters_armor=2
             ;;
         3)
             message_of_encouragement="Well, the hardest one... Good luck bro."
-            stats_player="test/hud/warrior.hud"
+            stats_player="lib/hud/warrior.hud"
             monsters_life=150
             monsters_atk=12
             monsters_armor=4
+            ;;
+        *)
+            message_of_encouragement="You're probably too shy to choose a difficulty by yourself... It'll be the beginner for you."
+            stats_player="lib/hud/beginner.hud"
+            monsters_life=50
+            monsters_atk=7
+            monsters_armor=1
+
             ;;
     esac
 
@@ -61,23 +73,31 @@ display_menu() {
     "\t\t3 (Large map - 20*20)" \
     "\n"
 
+    #wait for the user to choose the map size
     read map_size_choosen
 
     case "${map_size_choosen}" in
         1)
-            map_file="test/map/little.map"
+            #set the map file
+            map_file="lib/map/little.map"
             ;;
         2)
-            map_file="test/map/middle.map"
+            map_file="lib/map/middle.map"
             ;;
         3)
-            map_file="test/map/large.map"
+            map_file="lib/map/large.map"
+            ;;
+        *)
+            echo -e "\t${map_size_choosen} is not in the list that I allow you to choose. You'll play on the middle size map."
+            map_file="lib/map/middle.map"
             ;;
     esac
 
     echo -e "\tLet's get started in 5 seconds !"
+    #sleep 5 seconds for better lisibility
     sleep 5
 
+    #initialize the map, the hud and display them
     init_map "${map_file}" "${monsters_life}" "${monsters_atk}" "${monsters_armor}"
     init_hud "${stats_player}"
     draw_map
