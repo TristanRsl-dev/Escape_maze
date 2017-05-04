@@ -27,7 +27,7 @@ display_menu() {
     "\n"
 
     #wait for the user to choose his difficulty
-    read difficulty_choosen
+    read -rsn1 difficulty_choosen
 
     case "${difficulty_choosen}" in
         1)
@@ -74,7 +74,7 @@ display_menu() {
     "\n"
 
     #wait for the user to choose the map size
-    read map_size_choosen
+    read -rsn1 map_size_choosen
 
     case "${map_size_choosen}" in
         1)
@@ -100,8 +100,7 @@ display_menu() {
     #initialize the map, the hud and display them
     init_map "${map_file}" "${monsters_life}" "${monsters_atk}" "${monsters_armor}"
     init_hud "${stats_player}"
-    draw_map
-    display_hud
+    main_loop
 }
 
 init_map() {
@@ -203,48 +202,6 @@ contains() {
     echo 1
 }
 
-#with a direction given, move the player if it's possible
-#the value for the direction are the following:
-#'N' to go to the north
-#'E' to go to the East
-#'S' to go to the South
-#'W' to go to the West
-move_player() {
-    #FUNC ARGS
-    local direction="$1"
-    #END  ARGS
-
-    local y_position="$(get_info "${PLAYER_POSITION}" "y")"
-    local x_position="$(get_info "${PLAYER_POSITION}" "x")"
-
-    case "${direction}" in
-        "N")
-            if [[ ${y_position} != "1" ]]; then
-                PLAYER_POSITION="${x_position} $((${y_position} - 1))"
-                echo "$(draw_map)"
-            fi
-            ;;
-        "E")
-            if [[ ${x_position} != "${MAP_SIZE_X}" ]]; then
-                PLAYER_POSITION="$((${x_position} + 1)) ${y_position}"
-                echo "$(draw_map)"
-            fi
-            ;;
-        "S")
-            if [[ ${y_position} != "${MAP_SIZE_Y}" ]]; then
-                PLAYER_POSITION="${x_position} $((${y_position} + 1))"
-                echo "$(draw_map)"
-            fi
-            ;;
-        "W")
-            if [[ ${x_position} != "2" ]]; then
-                PLAYER_POSITION="$((${x_position} - 1)) ${y_position}"
-                echo "$(draw_map)"
-            fi
-            ;;
-    esac
-}
-
 #read from a file the informations of the player (life, attack, armor)
 init_hud() {
     #FUNC ARGS
@@ -301,6 +258,61 @@ transform_coordonate_into_index() {
     local monster_position_y="$(get_info "${coordonate}" "y")"
 
     echo "$((${monster_position_x} + (${MAP_SIZE_X} * $((${monster_position_y} - 1)))))"
+}
+
+##      MOVE        ##
+
+#with a direction given (a key from the keyboard), move the player if it's possible
+#the value for the direction are the following:
+#'N' to go to the north
+#'E' to go to the East
+#'S' to go to the South
+#'W' to go to the West
+move_player() {
+    #FUNC ARGS
+    local direction="$1"
+    #END  ARGS
+
+    local y_position="$(get_info "${PLAYER_POSITION}" "y")"
+    local x_position="$(get_info "${PLAYER_POSITION}" "x")"
+
+    case "${direction}" in
+        "z")
+            if [[ ${y_position} != "1" ]]; then
+                PLAYER_POSITION="${x_position} $((${y_position} - 1))"
+            fi
+            ;;
+        "d")
+            if [[ ${x_position} != "$((${MAP_SIZE_X} - 1))" ]]; then
+                PLAYER_POSITION="$((${x_position} + 1)) ${y_position}"
+            fi
+            ;;
+        "s")
+            if [[ ${y_position} != "$((${MAP_SIZE_Y} - 1))" ]]; then
+                PLAYER_POSITION="${x_position} $((${y_position} + 1))"
+            fi
+            ;;
+        "q")
+            if [[ ${x_position} != "2" ]]; then
+                PLAYER_POSITION="$((${x_position} - 1)) ${y_position}"
+            fi
+            ;;
+    esac
+}
+
+##      MAIN        ##
+
+main_loop() {
+    #FUNC ARGS
+    #END  ARGS
+
+    while true; do
+        clear
+        draw_map
+        display_hud
+        read -rsn1 key_pressed
+        move_player ${key_pressed}
+    done
 }
 
 display_menu
